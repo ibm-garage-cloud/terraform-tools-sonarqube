@@ -64,12 +64,22 @@ if [[ -n "${STORAGE_CLASS}" ]]; then
   VALUES="${VALUES},persistence.storageClass=${STORAGE_CLASS}"
 fi
 
-if [[ "${CLUSTER_TYPE}" == "openshift" ]] || [[ "${CLUSTER_TYPE}" == "ocp3" ]] || [[ "${CLUSTER_TYPE}" == "ocp4" ]]; then
+if [[ -n "${DATABASE_HOST}" ]] && \
+ [[ -n "${DATABASE_PORT}" ]] && \
+ [[ -n "${DATABASE_NAME}" ]] && \
+ [[ -n "${DATABASE_USERNAME}" ]] && \
+ [[ -n "${DATABASE_PASSWORD}" ]]; then
+  echo "*** Using external database information: ${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}"
+  EXTERNAL_POSTGRESQL="true"
+fi
+
+if [[ -z "${EXTERNAL_POSTGRESQL}" ]] && [[ "${CLUSTER_TYPE}" == "openshift" ]] || [[ "${CLUSTER_TYPE}" == "ocp3" ]] || [[ "${CLUSTER_TYPE}" == "ocp4" ]]; then
   DATABASE_HOST="postgresql"
   DATABASE_PORT="5432"
   DATABASE_USERNAME="sonarUser"
   DATABASE_PASSWORD="sonarPass"
   DATABASE_NAME="sonarqube"
+  EXTERNAL_POSTGRESQL="true"
 
   echo "*** Deplopying postgresql-persistent deployment config"
   oc new-app postgresql-persistent -n "${NAMESPACE}" \
@@ -81,11 +91,7 @@ if [[ "${CLUSTER_TYPE}" == "openshift" ]] || [[ "${CLUSTER_TYPE}" == "ocp3" ]] |
     -p VOLUME_CAPACITY="${VOLUME_CAPACITY}"
 fi
 
-if [[ -n "${DATABASE_HOST}" ]] && \
- [[ -n "${DATABASE_PORT}" ]] && \
- [[ -n "${DATABASE_NAME}" ]] && \
- [[ -n "${DATABASE_USERNAME}" ]] && \
- [[ -n "${DATABASE_PASSWORD}" ]]; then
+if [[ -n "${EXTERNAL_POSTGRESQL}" ]]; then
 
   echo "*** Database information provided for ${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}"
   VALUES="${VALUES},postgresql.enabled=false,postgresql.postgresqlServer=${DATABASE_HOST},postgresql.postgresqlDatabase=${DATABASE_NAME},postgresql.postgresqlUsername=${DATABASE_USERNAME},postgresql.postgresqlPassword=${DATABASE_PASSWORD},postgresql.service.port=${DATABASE_PORT}"
