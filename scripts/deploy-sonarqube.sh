@@ -85,6 +85,7 @@ if [[ -z "${EXTERNAL_POSTGRESQL}" ]] && [[ "${CLUSTER_TYPE}" == "openshift" ]] |
   oc new-app postgresql-persistent -n "${NAMESPACE}" \
     --name="${DATABASE_NAME}" \
     -l tools=sonarqube \
+    -l app=${NAME} \
     -p POSTGRESQL_USER="${DATABASE_USERNAME}" \
     -p POSTGRESQL_PASSWORD="${DATABASE_PASSWORD}" \
     -p POSTGRESQL_DATABASE="${DATABASE_NAME}" \
