@@ -15,7 +15,6 @@ locals {
   ingress_url  = "https://${local.ingress_host}"
   secret_name  = "sonarqube-access"
   config_name  = "sonarqube-config"
-  plugin_value = "{${join(",", var.plugins)}}"
   settings     = var.postgresql.external ? [{
     name  = "postgresql.enabled"
     value = "false"
@@ -37,6 +36,70 @@ locals {
   }] : []
 }
 
+resource "local_file" "sonarqube-values" {
+  content  = yamlencode({
+    image = {
+      pullPolicy = "Always"
+    }
+    persistence = {
+      enabled = false
+      storageClass = var.storage_class
+    }
+    serviceAccount = {
+      create = true
+      name = var.service_account_name
+    }
+    postgresql = {
+      enabled = !var.postgresql.external
+      postgresqlServer = var.postgresql.external ? var.postgresql.hostname : ""
+      postgresqlDatabase = var.postgresql.external ? var.postgresql.database_name : "sonarDB"
+      postgresqlUsername = var.postgresql.external ? var.postgresql.username : "sonarUser"
+      postgresqlPassword = var.postgresql.external ? var.postgresql.password : "sonarPass"
+      service = {
+        port = var.postgresql.external ? var.postgresql.port : 5432
+      }
+      serviceAccount = {
+        enabled = true
+        name = var.service_account_name
+      }
+      persistence = {
+        enabled = false
+        storageClass = var.storage_class
+      }
+      volumePermissions = {
+        enabled = false
+      }
+    }
+    ingress = {
+      enabled = var.cluster_type == "kubernetes"
+      annotations = {
+        "kubernetes.io/ingress.class" = "nginx"
+        "nginx.ingress.kubernetes.io/proxy-body-size" = "20m"
+        "ingress.kubernetes.io/proxy-body-size" = "20M"
+        "ingress.bluemix.net/client-max-body-size" = "20m"
+      }
+      hosts = [{
+        name = local.ingress_host
+      }]
+      tls = [{
+        secretName = var.tls_secret_name
+        hosts = [
+          local.ingress_host
+        ]
+      }]
+    }
+    plugins = {
+      install = var.plugins
+    }
+    enableTests = false
+  })
+  filename = "${path.cwd}/.tmp/sonarqube-values.yaml"
+}
+
+data "local_file" "sonarqube-values" {
+  filename = local_file.sonarqube-values.filename
+}
+
 resource "helm_release" "sonarqube" {
   name         = "sonarqube"
   repository   = "https://oteemo.github.io/charts"
@@ -49,76 +112,8 @@ resource "helm_release" "sonarqube" {
   wait         = false
 
   values = [
-    file("${path.module}/sonarqube-values.yaml")
+    data.local_file.sonarqube-values.content
   ]
-
-  set {
-    name  = "persistence.storageClass"
-    value = var.storage_class
-  }
-
-  set {
-    name  = "postgresql.persistence.storageClass"
-    value = var.storage_class
-  }
-
-  set {
-    name  = "ingress.hosts[0].name"
-    value = local.ingress_host
-  }
-
-  set {
-    name  = "ingress.tls[0].secretName"
-    value = var.tls_secret_name
-  }
-
-  set {
-    name  = "ingress.tls[0].hosts[0]"
-    value = local.ingress_host
-  }
-
-  set {
-    name  = "ingress.enabled"
-    value = var.cluster_type == "kubernetes" ? "true" : "false"
-  }
-
-  set {
-    name  = "serviceAccount.create"
-    value = "true"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = var.service_account_name
-  }
-
-  set {
-    name  = "postgresql.serviceAccount.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "postgresql.serviceAccount.name"
-    value = "sonarqube"
-  }
-
-//  set {
-//    name  = "postgresql.volumePermissions.enabled"
-//    value = var.cluster_type == "kubernetes" ? "false" : "true"
-//  }
-
-//  set {
-//    name  = "plugins.install"
-//    value = local.plugin_value
-//  }
-
-  dynamic "set" {
-    for_each = local.settings
-    content {
-      name  = set.value["name"]
-      value = set.value["value"]
-    }
-  }
 }
 
 resource "null_resource" "sonarqube_route" {
