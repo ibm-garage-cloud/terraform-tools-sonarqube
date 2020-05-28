@@ -18,6 +18,10 @@ persistence:
 postgresql:
   # Enable to deploy the PostgreSQL chart
   enabled: true
+  persistence:
+    enabled: false
+  volumePermissions:
+    enabled: false
 #  postgresUser: "sonarUser"
 #  postgresPassword: "sonarPass"
 #  postgresDatabase: "sonarDB"

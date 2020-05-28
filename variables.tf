@@ -27,7 +27,7 @@ variable "cluster_type" {
 variable "helm_version" {
   description = "The version of the helm chart that should be used"
   type        = string
-  default     = "4.4.0"
+  default     = "6.2.2"
 }
 
 variable "service_account_name" {
@@ -74,6 +74,7 @@ variable "postgresql" {
     hostname      = string
     port          = string
     database_name = string
+    external      = bool
   })
   description = "Properties for an existing postgresql database"
   default     = {
@@ -82,5 +83,6 @@ variable "postgresql" {
     hostname      = ""
     port          = ""
     database_name = ""
+    external      = false
   }
 }
