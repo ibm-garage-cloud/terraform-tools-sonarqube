@@ -1,5 +1,7 @@
 # SonarQube terraform module
 
+![Verify and release module](https://github.com/ibm-garage-cloud/terraform-tools-sonarqube/workflows/Verify%20and%20release%20module/badge.svg)
+
 Deploys SonarQube into the cluster using the helm chart. By default, a Postgres instance is deployed
 into the cluster as well to support the SonarQube instance.
 
