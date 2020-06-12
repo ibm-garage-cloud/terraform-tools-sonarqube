@@ -135,7 +135,7 @@ resource "null_resource" "sonarqube_route" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "${path.module}/scripts/delete-reoute.sh ${self.triggers.namespace} sonarqube"
+    command = "${path.module}/scripts/delete-route.sh ${self.triggers.namespace} sonarqube"
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
