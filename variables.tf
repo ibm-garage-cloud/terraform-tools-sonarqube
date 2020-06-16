@@ -27,7 +27,7 @@ variable "cluster_type" {
 variable "helm_version" {
   description = "The version of the helm chart that should be used"
   type        = string
-  default     = "6.2.2"
+  default     = "6.4.1"
 }
 
 variable "service_account_name" {
