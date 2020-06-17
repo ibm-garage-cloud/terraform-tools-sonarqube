@@ -8,7 +8,6 @@ mkdir -p "${TMP_DIR}"
 NAMESPACE="$1"
 SERVICE_NAME="$2"
 ROUTE_NAME="$3"
-CLUSTER_TYPE="$4"
 
 cat > "${TMP_DIR}/sonarqube-route.yaml" << EOL
 apiVersion: route.openshift.io/v1
@@ -29,8 +28,3 @@ spec:
 EOL
 
 kubectl apply -n "${NAMESPACE}" -f "${TMP_DIR}/sonarqube-route.yaml" --validate=false
-
-if [[ "${CLUSTER_TYPE}" == "ocp3" ]]; then
-  # patch the deployment
-  kubectl patch deployment "${SERVICE_NAME}" --type json -p='[{"op": "replace", "path": "/spec/progressDeadlineSeconds", "value": 1200}]'
-fi
