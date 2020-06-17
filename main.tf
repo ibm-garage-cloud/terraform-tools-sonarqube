@@ -126,7 +126,7 @@ resource "null_resource" "sonarqube_route" {
   }
 
   provisioner "local-exec" {
-    command = "${path.module}/scripts/create-route.sh ${self.triggers.namespace} sonarqube-sonarqube sonarqube"
+    command = "${path.module}/scripts/create-route.sh ${self.triggers.namespace} sonarqube-sonarqube sonarqube ${var.cluster_type}"
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
