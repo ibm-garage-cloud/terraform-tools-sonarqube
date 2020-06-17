@@ -208,10 +208,10 @@ resource "helm_release" "sonarqube-config" {
 }
 
 resource "null_resource" "wait-for-sonarqube" {
-  depends_on = [null_resource.patch_deployment]
+  depends_on = [null_resource.patch_deployment, null_resource.sonarqube_route]
 
   provisioner "local-exec" {
-    command = "kubectl rollout status deployment/sonarqube-sonarqube -n ${var.releases_namespace} --timeout=30m"
+    command = "${path.module}/scripts/wait-for-deployment.sh ${var.releases_namespace} sonarqube-sonarqube"
 
     environment = {
       KUBECONFIG = var.cluster_config_file
