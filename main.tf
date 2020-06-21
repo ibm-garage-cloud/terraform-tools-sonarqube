@@ -116,6 +116,18 @@ resource "helm_release" "sonarqube" {
   ]
 }
 
+resource "null_resource" "patch_deployment" {
+  depends_on = [helm_release.sonarqube]
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/patch-deployment.sh ${var.releases_namespace} sonarqube-sonarqube"
+
+    environment = {
+      KUBECONFIG = var.cluster_config_file
+    }
+  }
+}
+
 resource "null_resource" "sonarqube_route" {
   depends_on = [helm_release.sonarqube]
   count      = var.cluster_type != "kubernetes" ? 1 : 0
@@ -156,7 +168,7 @@ resource "null_resource" "delete-consolelink" {
 }
 
 resource "helm_release" "sonarqube-config" {
-  depends_on = [null_resource.sonarqube_route, null_resource.delete-consolelink]
+  depends_on = [null_resource.patch_deployment, null_resource.sonarqube_route, null_resource.delete-consolelink]
 
   name         = "sonarqube-config"
   repository   = "https://ibm-garage-cloud.github.io/toolkit-charts/"
@@ -186,7 +198,7 @@ resource "helm_release" "sonarqube-config" {
 
   set {
     name  = "applicationMenu"
-    value = var.cluster_type != "kubernetes"
+    value = var.cluster_type == "ocp4"
   }
 
   set {
@@ -196,10 +208,10 @@ resource "helm_release" "sonarqube-config" {
 }
 
 resource "null_resource" "wait-for-sonarqube" {
-  depends_on = [helm_release.sonarqube]
+  depends_on = [null_resource.patch_deployment, null_resource.sonarqube_route]
 
   provisioner "local-exec" {
-    command = "kubectl rollout status deployment/sonarqube-sonarqube -n ${var.releases_namespace} --timeout=30m"
+    command = "${path.module}/scripts/wait-for-deployment.sh ${var.releases_namespace} sonarqube-sonarqube"
 
     environment = {
       KUBECONFIG = var.cluster_config_file
