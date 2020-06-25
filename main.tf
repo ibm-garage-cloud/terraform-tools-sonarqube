@@ -163,3 +163,15 @@ resource "helm_release" "sonarqube" {
 
   values = [local_file.sonarqube-values.content]
 }
+
+resource "null_resource" "wait-for-sonarqube" {
+  depends_on = [helm_release.sonarqube]
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/wait-for-deployment.sh ${var.releases_namespace} sonarqube-sonarqube"
+
+    environment = {
+      KUBECONFIG = var.cluster_config_file
+    }
+  }
+}
