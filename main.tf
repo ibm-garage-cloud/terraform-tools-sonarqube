@@ -160,4 +160,6 @@ resource "helm_release" "sonarqube" {
   replace           = true
 
   disable_openapi_validation = true
+
+  values = [local_file.sonarqube-values.content]
 }
