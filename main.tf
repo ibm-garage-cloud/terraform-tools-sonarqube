@@ -15,29 +15,13 @@ locals {
   ingress_url  = "https://${local.ingress_host}"
   secret_name  = "sonarqube-access"
   config_name  = "sonarqube-config"
-  settings     = var.postgresql.external ? [{
-    name  = "postgresql.enabled"
-    value = "false"
-  }, {
-    name  = "postgresql.postgresqlServer"
-    value = var.postgresql.hostname
-  }, {
-    name  = "postgresql.postgresqlDatabase"
-    value = var.postgresql.database_name
-  }, {
-    name  = "postgresql.postgresqlUsername"
-    value = var.postgresql.username
-  }, {
-    name  = "postgresql.postgresqlPassword"
-    value = var.postgresql.password
-  }, {
-    name  = "postgresql.service.port"
-    value = var.postgresql.port
-  }] : []
-}
-
-resource "local_file" "sonarqube-values" {
-  content  = yamlencode({
+  gitops_dir   = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
+  chart_dir    = "${local.gitops_dir}/sonarqube"
+  global_config    = {
+    storageClass = var.storage_class
+    clusterType = var.cluster_type
+  }
+  sonarqube_config = {
     image = {
       pullPolicy = "Always"
     }
@@ -92,66 +76,32 @@ resource "local_file" "sonarqube-values" {
       install = var.plugins
     }
     enableTests = false
-  })
-  filename = "${path.cwd}/.tmp/sonarqube-values.yaml"
-}
-
-data "local_file" "sonarqube-values" {
-  filename = local_file.sonarqube-values.filename
-}
-
-resource "helm_release" "sonarqube" {
-  name         = "sonarqube"
-  repository   = "https://oteemo.github.io/charts"
-  chart        = "sonarqube"
-  version      = var.helm_version
-  namespace    = var.releases_namespace
-  timeout      = 1200
-  force_update = true
-  replace      = true
-  wait         = false
-
-  values = [
-    data.local_file.sonarqube-values.content
-  ]
-}
-
-resource "null_resource" "patch_deployment" {
-  depends_on = [helm_release.sonarqube]
-
-  provisioner "local-exec" {
-    command = "${path.module}/scripts/patch-deployment.sh ${var.releases_namespace} sonarqube-sonarqube"
-
-    environment = {
-      KUBECONFIG = var.cluster_config_file
-    }
+  }
+  service_account_config = {
+    name = var.service_account_name
+    create = false
+    sccs = ["anyuid", "privileged"]
+  }
+  ocp_route_config       = {
+    nameOverride = "sonarqube"
+    targetPort = "http"
+    app = "sonarqube"
+    serviceName = "sonarqube-sonarqube"
+    termination = "edge"
+    insecurePolicy = "Redirect"
+  }
+  tool_config = {
+    name = "SonarQube"
+    url = local.ingress_url
+    username = "admin"
+    password = "admin"
+    applicationMenu = true
   }
 }
 
-resource "null_resource" "sonarqube_route" {
-  depends_on = [helm_release.sonarqube]
-  count      = var.cluster_type != "kubernetes" ? 1 : 0
-
-  triggers = {
-    kubeconfig = var.cluster_config_file
-    namespace  = var.releases_namespace
-  }
-
+resource "null_resource" "setup-chart" {
   provisioner "local-exec" {
-    command = "${path.module}/scripts/create-route.sh ${self.triggers.namespace} sonarqube-sonarqube sonarqube"
-
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-    }
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "${path.module}/scripts/delete-route.sh ${self.triggers.namespace} sonarqube"
-
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-    }
+    command = "mkdir -p ${local.gitops_dir}/sonarqube && cp -R ${path.module}/chart/sonarqube/* ${local.chart_dir}"
   }
 }
 
@@ -167,54 +117,47 @@ resource "null_resource" "delete-consolelink" {
   }
 }
 
-resource "helm_release" "sonarqube-config" {
-  depends_on = [null_resource.patch_deployment, null_resource.sonarqube_route, null_resource.delete-consolelink]
+resource "local_file" "sonarqube-values" {
+  content  = yamlencode({
+    global = local.global_config
+    sonarqube = local.sonarqube_config
+    service-account = local.service_account_config
+    ocp-route = local.ocp_route_config
+    tool-config = local.tool_config
+  })
+  filename = "${local.chart_dir}/values.yaml"
+}
 
-  name         = "sonarqube-config"
-  repository   = "https://ibm-garage-cloud.github.io/toolkit-charts/"
-  chart        = "tool-config"
-  namespace    = var.releases_namespace
-  force_update = true
-
-  set {
-    name  = "name"
-    value = "SonarQube"
-  }
-
-  set {
-    name  = "url"
-    value = local.ingress_url
-  }
-
-  set {
-    name  = "username"
-    value = "admin"
-  }
-
-  set {
-    name  = "password"
-    value = "admin"
-  }
-
-  set {
-    name  = "applicationMenu"
-    value = var.cluster_type == "ocp4"
-  }
-
-  set {
-    name  = "ingressSubdomain"
-    value = var.cluster_ingress_hostname
+resource "null_resource" "print-values" {
+  provisioner "local-exec" {
+    command = "cat ${local_file.sonarqube-values.filename}"
   }
 }
 
-resource "null_resource" "wait-for-sonarqube" {
-  depends_on = [null_resource.patch_deployment, null_resource.sonarqube_route]
+resource "null_resource" "scc-cleanup" {
+  depends_on = [local_file.sonarqube-values]
+  count = var.mode != "setup" ? 1 : 0
 
   provisioner "local-exec" {
-    command = "${path.module}/scripts/wait-for-deployment.sh ${var.releases_namespace} sonarqube-sonarqube"
+    command = "kubectl delete scc -l app.kubernetes.io/name=sonarqube-sonarqube --wait 1> /dev/null 2> /dev/null || true"
 
     environment = {
       KUBECONFIG = var.cluster_config_file
     }
   }
+}
+
+resource "helm_release" "sonarqube" {
+  depends_on = [local_file.sonarqube-values, null_resource.scc-cleanup]
+  count = var.mode != "setup" ? 1 : 0
+
+  name              = "sonarqube"
+  chart             = local.chart_dir
+  namespace         = var.releases_namespace
+  timeout           = 1200
+  dependency_update = true
+  force_update      = true
+  replace           = true
+
+  disable_openapi_validation = true
 }
