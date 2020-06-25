@@ -1,0 +1,13 @@
+dependencies:
+  - name: service-account
+    version: 0.4.0
+    repository: https://ibm-garage-cloud.github.io/toolkit-charts/
+  - name: sonarqube
+    version: 6.4.2
+    repository: https://oteemo.github.io/charts
+  - name: ocp-route
+    version: 0.3.0
+    repository: https://ibm-garage-cloud.github.io/toolkit-charts/
+  - name: tool-config
+    version: 0.5.0
+    repository: https://ibm-garage-cloud.github.io/toolkit-charts/

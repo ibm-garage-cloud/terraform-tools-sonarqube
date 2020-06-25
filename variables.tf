@@ -27,13 +27,13 @@ variable "cluster_type" {
 variable "helm_version" {
   description = "The version of the helm chart that should be used"
   type        = string
-  default     = "6.2.2"
+  default     = "6.4.1"
 }
 
 variable "service_account_name" {
   description = "The name of the service account that should be used for the deployment"
   type        = string
-  default     = "default"
+  default     = "sonarqube-sonarqube"
 }
 
 variable "plugins" {
@@ -85,4 +85,16 @@ variable "postgresql" {
     database_name = ""
     external      = false
   }
+}
+
+variable "gitops_dir" {
+  type        = string
+  description = "Directory where the gitops repo content should be written"
+  default     = ""
+}
+
+variable "mode" {
+  type        = string
+  description = "The mode of operation for the module (setup)"
+  default     = ""
 }
