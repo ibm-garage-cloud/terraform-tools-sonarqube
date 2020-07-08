@@ -20,6 +20,7 @@ locals {
   global_config    = {
     storageClass = var.storage_class
     clusterType = var.cluster_type
+    ingressSubdomain = var.cluster_ingress_hostname
   }
   sonarqube_config = {
     image = {
