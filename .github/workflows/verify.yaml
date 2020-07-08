@@ -18,8 +18,8 @@ jobs:
 
     strategy:
       matrix:
-        platform: [iks118_vpc, ocp3, ocp4]
-#      max-parallel: 1
+        platform: [iks118_vpc, ocp4_vpc, ocp44_vpc]
+      #      max-parallel: 1
       fail-fast: false
 
     env:
@@ -33,6 +33,7 @@ jobs:
       TF_VAR_cluster_name: ${{ secrets[format('TEST_CLUSTER_{0}', matrix.platform)] }}
       TF_VAR_cluster_type: ${{ matrix.platform }}
       TF_VAR_vpc_cluster: ${{ endswith(matrix.platform, 'vpc') }}
+      CONSOLE_LINK_NAME: ${{ secrets.CONSOLE_LINK_NAME }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -89,10 +90,11 @@ jobs:
           fi
 
   release:
+    # Steps represent a sequence of tasks that will be executed as part of the job
     #    if: ${{ github.event_name == 'push' }}
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
+    if: ${{ github.event_name == 'push' && !contains(github.event.commits[0].message, '[skip release]') }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
