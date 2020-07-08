@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$(cd $(dirname $0); pwd -P)
+SCRIPT_DIR=$(cd $(dirname "$0"); pwd -P)
+
+export KUBECONFIG="${SCRIPT_DIR}/.kube/config"
 
 CLUSTER_TYPE="$1"
 NAMESPACE="$2"
@@ -14,9 +16,20 @@ if [[ -n "${POD_STATUSES}" ]]; then
   exit 1
 fi
 
+if [[ "${CLUSTER_TYPE}" =~ ocp4 ]] && [[ -n "${CONSOLE_LINK_NAME}" ]]; then
+  if kubectl get consolelink "toolkit-${CONSOLE_LINK_NAME}" 1> /dev/null 2> /dev/null; then
+    echo "ConsoleLink installed"
+    kubectl get consolelink "toolkit-${CONSOLE_LINK_NAME}"
+  else
+    echo "ConsoleLink not found"
+    kubectl get consolelink
+    exit 1
+  fi
+fi
+
 set -e
 
-if [[ "${CLUSTER_TYPE}" == "kubernetes" ]] || [[ "${CLUSTER_TYPE}" =~ iks.* ]]; then
+if [[ "${CLUSTER_TYPE}" == "kubernetes" ]] || [[ "${CLUSTER_TYPE}" =~ iks ]]; then
   ENDPOINTS=$(kubectl get ingress -n "${NAMESPACE}" -o jsonpath='{range .items[*]}{range .spec.rules[*]}{"https://"}{.host}{"\n"}{end}{end}')
 else
   ENDPOINTS=$(kubectl get route -n "${NAMESPACE}" -o jsonpath='{range .items[*]}{"https://"}{.spec.host}{"\n"}{end}')

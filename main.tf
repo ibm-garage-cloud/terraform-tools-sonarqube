@@ -20,6 +20,7 @@ locals {
   global_config    = {
     storageClass = var.storage_class
     clusterType = var.cluster_type
+    ingressSubdomain = var.cluster_ingress_hostname
   }
   sonarqube_config = {
     image = {
@@ -32,6 +33,9 @@ locals {
     serviceAccount = {
       create = true
       name = var.service_account_name
+    }
+    podLabels = {
+      "app.kubernetes.io/part-of" = "sonarqubw"
     }
     postgresql = {
       enabled = !var.postgresql.external
@@ -52,6 +56,14 @@ locals {
       }
       volumePermissions = {
         enabled = false
+      }
+      master = {
+        labels = {
+          "app.kubernetes.io/part-of" = "sonarqubw"
+        }
+        podLabels = {
+          "app.kubernetes.io/part-of" = "sonarqube"
+        }
       }
     }
     ingress = {
