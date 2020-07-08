@@ -33,6 +33,9 @@ locals {
       create = true
       name = var.service_account_name
     }
+    podLabels = {
+      "app.kubernetes.io/part-of" = "sonarqubw"
+    }
     postgresql = {
       enabled = !var.postgresql.external
       postgresqlServer = var.postgresql.external ? var.postgresql.hostname : ""
@@ -52,6 +55,14 @@ locals {
       }
       volumePermissions = {
         enabled = false
+      }
+      master = {
+        labels = {
+          "app.kubernetes.io/part-of" = "sonarqubw"
+        }
+        podLabels = {
+          "app.kubernetes.io/part-of" = "sonarqube"
+        }
       }
     }
     ingress = {
