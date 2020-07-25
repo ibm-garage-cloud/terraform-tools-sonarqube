@@ -4,12 +4,12 @@ dependencies:
   version: 0.4.0
 - name: sonarqube
   repository: https://oteemo.github.io/charts
-  version: 6.4.2
+  version: 6.6.0
 - name: ocp-route
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
   version: 0.3.0
 - name: tool-config
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
   version: 0.8.1
-digest: sha256:aa03c421bc62269da5489cbc8e017a34119f9a3003c278a13e4eeadd8db5c54d
-generated: "2020-07-23T19:19:02.133671-05:00"
+digest: sha256:d26461cfcb840e1a2a49535c7418596acbbecb24e00f6952f6a472b5e5d35e37
+generated: "2020-07-25T16:34:41.07768-05:00"
