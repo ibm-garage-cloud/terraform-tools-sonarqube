@@ -13,6 +13,7 @@ locals {
   tmp_dir      = "${path.cwd}/.tmp"
   ingress_host = "${var.hostname}-${var.releases_namespace}.${var.cluster_ingress_hostname}"
   ingress_url  = "https://${local.ingress_host}"
+  service_url  = "http://sonarqube-sonarqube.${var.releases_namespace}"
   secret_name  = "sonarqube-access"
   config_name  = "sonarqube-config"
   gitops_dir   = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
@@ -105,6 +106,7 @@ locals {
   tool_config = {
     name = "SonarQube"
     url = local.ingress_url
+    privateUrl = local.service_url
     username = "admin"
     password = "admin"
     applicationMenu = true

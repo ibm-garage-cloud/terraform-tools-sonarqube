@@ -10,6 +10,6 @@ dependencies:
   version: 0.3.0
 - name: tool-config
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
-  version: 0.8.1
-digest: sha256:d26461cfcb840e1a2a49535c7418596acbbecb24e00f6952f6a472b5e5d35e37
-generated: "2020-07-25T16:34:41.07768-05:00"
+  version: 0.9.0
+digest: sha256:fb5914b32c6d5c2eec291fec326f693d343e8ee54953fae7165bb32ddbee304b
+generated: "2020-08-12T10:12:46.965351-05:00"
