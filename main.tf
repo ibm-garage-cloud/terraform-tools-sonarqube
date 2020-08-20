@@ -13,7 +13,7 @@ locals {
   tmp_dir      = "${path.cwd}/.tmp"
   ingress_host = "${var.hostname}-${var.releases_namespace}.${var.cluster_ingress_hostname}"
   ingress_url  = "https://${local.ingress_host}"
-  service_url  = "http://sonarqube-sonarqube.${var.releases_namespace}"
+  service_url  = "http://sonarqube-sonarqube.${var.releases_namespace}:9000"
   secret_name  = "sonarqube-access"
   config_name  = "sonarqube-config"
   config_sa_name = "sonarqube"
