@@ -16,7 +16,7 @@ locals {
   service_url  = "http://sonarqube-sonarqube.${var.releases_namespace}"
   secret_name  = "sonarqube-access"
   config_name  = "sonarqube-config"
-  config_sa_name = "sonarqube-sonarqube"
+  config_sa_name = "sonarqube"
   gitops_dir   = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
   chart_dir    = "${local.gitops_dir}/sonarqube"
   global_config    = {
