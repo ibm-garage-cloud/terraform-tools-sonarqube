@@ -16,7 +16,7 @@ locals {
   service_url  = "http://sonarqube-sonarqube.${var.releases_namespace}:9000"
   secret_name  = "sonarqube-access"
   config_name  = "sonarqube-config"
-  config_sa_name = "sonarqube"
+  config_sa_name = "sonarqube-config"
   gitops_dir   = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
   chart_dir    = "${local.gitops_dir}/sonarqube"
   global_config    = {
@@ -96,6 +96,23 @@ locals {
     create = false
     sccs = ["anyuid", "privileged"]
   }
+  config_service_account_config = {
+    name = local.config_sa_name
+    roles = [
+      {
+        apiGroups = [
+          ""
+        ]
+        resources = [
+          "secrets",
+          "configmaps"
+        ]
+        verbs = [
+          "*"
+        ]
+      }
+    ]
+  }
   ocp_route_config       = {
     nameOverride = "sonarqube"
     targetPort = "http"
@@ -146,6 +163,7 @@ resource "local_file" "sonarqube-values" {
     global = local.global_config
     sonarqube = local.sonarqube_config
     service-account = local.service_account_config
+    config-service-account = local.config_service_account_config
     ocp-route = local.ocp_route_config
     tool-config = local.tool_config
     setup-job = local.job_config

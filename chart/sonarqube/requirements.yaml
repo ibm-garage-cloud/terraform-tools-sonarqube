@@ -1,7 +1,11 @@
 dependencies:
   - name: service-account
-    version: 0.4.0
+    version: 0.5.0
     repository: https://ibm-garage-cloud.github.io/toolkit-charts/
+  - name: service-account
+    version: 0.5.0
+    repository: https://ibm-garage-cloud.github.io/toolkit-charts/
+    alias: config-service-account
   - name: sonarqube
     version: 6.6.0
     repository: https://oteemo.github.io/charts
