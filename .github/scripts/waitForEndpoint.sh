@@ -14,7 +14,7 @@ count=0
 
 sleep 20
 
-until [[ $(curl -X GET -Iq --insecure "${URL}" | grep -E "401|403|200") ]] || \
+until [[ $(curl -X GET -LLq --insecure "${URL}" | grep -E "401|403|200") ]] || \
   [[ $count -eq ${WAIT_COUNT} ]]
 do
     echo ">>> waiting for ${URL} to be available"
