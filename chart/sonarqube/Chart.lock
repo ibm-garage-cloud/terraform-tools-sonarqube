@@ -11,5 +11,8 @@ dependencies:
 - name: tool-config
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
   version: 0.9.0
-digest: sha256:fb5914b32c6d5c2eec291fec326f693d343e8ee54953fae7165bb32ddbee304b
-generated: "2020-08-12T10:12:46.965351-05:00"
+- name: setup-job
+  repository: https://ibm-garage-cloud.github.io/toolkit-charts/
+  version: 0.1.7
+digest: sha256:fce846fdaffdc34f2ca5dc0bbc0c01981a6a0ba6dd2e4965b1fa04d19f2ef651
+generated: "2020-08-20T00:20:48.233026-05:00"

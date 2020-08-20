@@ -11,3 +11,6 @@ dependencies:
   - name: tool-config
     version: 0.9.0
     repository: https://ibm-garage-cloud.github.io/toolkit-charts/
+  - name: setup-job
+    version: 0.1.7
+    repository: https://ibm-garage-cloud.github.io/toolkit-charts/
