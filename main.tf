@@ -13,8 +13,10 @@ locals {
   tmp_dir      = "${path.cwd}/.tmp"
   ingress_host = "${var.hostname}-${var.releases_namespace}.${var.cluster_ingress_hostname}"
   ingress_url  = "https://${local.ingress_host}"
+  service_url  = "http://sonarqube-sonarqube.${var.releases_namespace}:9000"
   secret_name  = "sonarqube-access"
   config_name  = "sonarqube-config"
+  config_sa_name = "sonarqube-config"
   gitops_dir   = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
   chart_dir    = "${local.gitops_dir}/sonarqube"
   global_config    = {
@@ -94,6 +96,23 @@ locals {
     create = false
     sccs = ["anyuid", "privileged"]
   }
+  config_service_account_config = {
+    name = local.config_sa_name
+    roles = [
+      {
+        apiGroups = [
+          ""
+        ]
+        resources = [
+          "secrets",
+          "configmaps"
+        ]
+        verbs = [
+          "*"
+        ]
+      }
+    ]
+  }
   ocp_route_config       = {
     nameOverride = "sonarqube"
     targetPort = "http"
@@ -105,9 +124,19 @@ locals {
   tool_config = {
     name = "SonarQube"
     url = local.ingress_url
+    privateUrl = local.service_url
     username = "admin"
     password = "admin"
     applicationMenu = true
+  }
+  job_config             = {
+    name = "sonarqube"
+    serviceAccountName = local.config_sa_name
+    command = "setup-sonarqube"
+    secret = {
+      name = local.secret_name
+      key  = "SONARQUBE_URL"
+    }
   }
 }
 
@@ -134,8 +163,10 @@ resource "local_file" "sonarqube-values" {
     global = local.global_config
     sonarqube = local.sonarqube_config
     service-account = local.service_account_config
+    config-service-account = local.config_service_account_config
     ocp-route = local.ocp_route_config
     tool-config = local.tool_config
+    setup-job = local.job_config
   })
   filename = "${local.chart_dir}/values.yaml"
 }
@@ -176,11 +207,12 @@ resource "helm_release" "sonarqube" {
   values = [local_file.sonarqube-values.content]
 }
 
-resource "null_resource" "wait-for-sonarqube" {
+resource "null_resource" "wait-for-config-job" {
   depends_on = [helm_release.sonarqube]
+  count = var.mode != "setup" ? 1 : 0
 
   provisioner "local-exec" {
-    command = "${path.module}/scripts/wait-for-deployment.sh ${var.releases_namespace} sonarqube-sonarqube"
+    command = "kubectl wait -n ${var.releases_namespace} --for=condition=complete --timeout=30m job -l app=sonarqube"
 
     environment = {
       KUBECONFIG = var.cluster_config_file

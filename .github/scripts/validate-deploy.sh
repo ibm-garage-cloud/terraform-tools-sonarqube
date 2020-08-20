@@ -37,9 +37,13 @@ fi
 
 echo "Validating endpoints:\n${ENDPOINTS}"
 
-echo "${ENDPOINTS}" | while read endpoint; do
+echo "${ENDPOINTS}" | while read -r endpoint; do
   if [[ -n "${endpoint}" ]]; then
-    ${SCRIPT_DIR}/waitForEndpoint.sh "${endpoint}" 10 10
+    if [[ "${endpoint}" =~ destroytest ]]; then
+      echo "Skipping destroytest endpoint"
+    else
+      "${SCRIPT_DIR}/waitForEndpoint.sh" "${endpoint}" 10 10
+    fi
   fi
 done
 
