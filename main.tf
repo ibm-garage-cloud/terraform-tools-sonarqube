@@ -37,7 +37,7 @@ locals {
       name = var.service_account_name
     }
     podLabels = {
-      "app.kubernetes.io/part-of" = "sonarqubw"
+      "app.kubernetes.io/part-of" = "sonarqube"
     }
     postgresql = {
       enabled = !var.postgresql.external
@@ -61,7 +61,7 @@ locals {
       }
       master = {
         labels = {
-          "app.kubernetes.io/part-of" = "sonarqubw"
+          "app.kubernetes.io/part-of" = "sonarqube"
         }
         podLabels = {
           "app.kubernetes.io/part-of" = "sonarqube"
