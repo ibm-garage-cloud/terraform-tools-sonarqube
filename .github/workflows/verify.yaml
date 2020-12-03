@@ -14,12 +14,12 @@ jobs:
     # The type of runner that the job will run on
     if: "!contains(github.event.commits[0].message, '[skip ci]')"
     runs-on: ubuntu-latest
-    container: ibmgaragecloud/cli-tools:0.6.0-lite
+    container: ibmgaragecloud/cli-tools:0.8.0-lite
 
     strategy:
       matrix:
-        platform: [iks118_vpc, ocp4_vpc, ocp44_vpc]
-      #      max-parallel: 1
+        platform: [ocp44_vpc]
+#      max-parallel: 1
       fail-fast: false
 
     env:
@@ -33,7 +33,7 @@ jobs:
       TF_VAR_cluster_name: ${{ secrets[format('TEST_CLUSTER_{0}', matrix.platform)] }}
       TF_VAR_cluster_type: ${{ matrix.platform }}
       TF_VAR_vpc_cluster: ${{ endswith(matrix.platform, 'vpc') }}
-      CONSOLE_LINK_NAME: ${{ secrets.CONSOLE_LINK_NAME }}
+      TF_VAR_cluster_exists: "true"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -106,3 +106,4 @@ jobs:
           publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
