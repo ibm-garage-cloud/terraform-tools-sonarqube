@@ -46,3 +46,11 @@ versions:
         id: namespace
         output: name
         discriminator: tools
+    - name: mode
+      scope: global
+    - name: gitops_dir
+      scope: global
+    - name: postgresql
+      scope: ignore
+    - name: plugins
+      scope: ignore
