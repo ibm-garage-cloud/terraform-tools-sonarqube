@@ -12,4 +12,5 @@ module "dev_cluster" {
   vpc_subnet_count        = 1
   vpc_name                = ""
   vpc_subnets             = []
+  login                   = true
 }
