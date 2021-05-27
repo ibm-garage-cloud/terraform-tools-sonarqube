@@ -57,6 +57,13 @@ locals {
           "app.kubernetes.io/part-of" = "sonarqube"
         }
       }
+      account = {
+        currentAdminPassword = "admin"
+        adminPassword = random_password.admin_password.result
+      }
+      OpenShift = {
+        enabled = true
+      }
     }
     ingress = {
       enabled = var.cluster_type == "kubernetes"
@@ -81,28 +88,6 @@ locals {
     }
     enableTests = false
   }
-  service_account_config = {
-    name = var.service_account_name
-    create = false
-    sccs = ["anyuid", "privileged"]
-  }
-  config_service_account_config = {
-    name = local.config_sa_name
-    roles = [
-      {
-        apiGroups = [
-          ""
-        ]
-        resources = [
-          "secrets",
-          "configmaps"
-        ]
-        verbs = [
-          "*"
-        ]
-      }
-    ]
-  }
   ocp_route_config       = {
     nameOverride = "sonarqube"
     targetPort = "http"
@@ -116,18 +101,15 @@ locals {
     url = local.ingress_url
     privateUrl = local.service_url
     username = "admin"
-    password = "admin"
+    password = random_password.admin_password.result
     applicationMenu = true
   }
-  job_config             = {
-    name = "sonarqube"
-    serviceAccountName = local.config_sa_name
-    command = "setup-sonarqube"
-    secret = {
-      name = local.secret_name
-      key  = "SONARQUBE_URL"
-    }
-  }
+}
+
+resource "random_password" "admin_password" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
 }
 
 resource "null_resource" "setup-chart" {
