@@ -181,7 +181,7 @@ resource "null_resource" "wait-for-config-job" {
   count = var.mode != "setup" ? 1 : 0
 
   provisioner "local-exec" {
-    command = "kubectl wait -n ${var.releases_namespace}-sonarqube-change-admin-password-hook --for=condition=complete --timeout=30m job -l app=sonarqube"
+    command = "kubectl get jobs -n ${var.releases_namespace} --show-labels && kubectl wait -n ${var.releases_namespace} --for=condition=complete --timeout=30m job -l app=sonarqube"
 
     environment = {
       KUBECONFIG = var.cluster_config_file
