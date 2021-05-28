@@ -57,13 +57,6 @@ locals {
           "app.kubernetes.io/part-of" = "sonarqube"
         }
       }
-      account = {
-        currentAdminPassword = "admin"
-        adminPassword = random_password.admin_password.result
-      }
-      OpenShift = {
-        enabled = true
-      }
     }
     ingress = {
       enabled = var.cluster_type == "kubernetes"
@@ -87,6 +80,13 @@ locals {
       install = var.plugins
     }
     enableTests = false
+    account = {
+      currentAdminPassword = "admin"
+      adminPassword = random_password.admin_password.result
+    }
+    OpenShift = {
+      enabled = true
+    }
   }
   ocp_route_config       = {
     nameOverride = "sonarqube"
