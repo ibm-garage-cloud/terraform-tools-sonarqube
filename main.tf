@@ -86,7 +86,13 @@ locals {
     }
     OpenShift = {
       enabled = true
+      createScc = false
     }
+  }
+  service_account_config = {
+    name = var.service_account_name
+    create = false
+    sccs = ["anyuid", "privileged"]
   }
   ocp_route_config       = {
     nameOverride = "sonarqube"
@@ -133,6 +139,7 @@ resource "null_resource" "delete-consolelink" {
 resource "local_file" "sonarqube-values" {
   content  = yamlencode({
     global = local.global_config
+    service-account = local.service_account_config
     sonarqube = local.sonarqube_config
     ocp-route = local.ocp_route_config
     tool-config = local.tool_config
