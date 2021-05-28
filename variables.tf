@@ -41,7 +41,6 @@ variable "plugins" {
   type        = list(string)
   default     = [
     "https://binaries.sonarsource.com/Distribution/sonar-typescript-plugin/sonar-typescript-plugin-2.1.0.4359.jar",
-    "https://binaries.sonarsource.com/Distribution/sonar-java-plugin/sonar-java-plugin-6.5.1.22586.jar",
     "https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-6.2.1.12157.jar",
     "https://binaries.sonarsource.com/Distribution/sonar-go-plugin/sonar-go-plugin-1.7.0.883.jar",
     "https://github.com/checkstyle/sonar-checkstyle/releases/download/4.33/checkstyle-sonar-plugin-4.33.jar"
