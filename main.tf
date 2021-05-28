@@ -177,21 +177,9 @@ resource "helm_release" "sonarqube" {
   dependency_update = true
   force_update      = true
   replace           = true
+  wait_for_jobs     = true
 
   disable_openapi_validation = true
 
   values = [local_file.sonarqube-values.content]
-}
-
-resource "null_resource" "wait-for-config-job" {
-  depends_on = [helm_release.sonarqube]
-  count = var.mode != "setup" ? 1 : 0
-
-  provisioner "local-exec" {
-    command = "kubectl get jobs -n ${var.releases_namespace} --show-labels && kubectl wait -n ${var.releases_namespace} --for=condition=complete --timeout=30m job -l app=sonarqube"
-
-    environment = {
-      KUBECONFIG = var.cluster_config_file
-    }
-  }
 }
