@@ -183,3 +183,15 @@ resource "helm_release" "sonarqube" {
 
   values = [local_file.sonarqube-values.content]
 }
+
+resource null_resource list_contents {
+  depends_on = [helm_release.sonarqube]
+
+  provisioner "local-exec" {
+    command = "kubectl get all -n ${var.releases_namespace}"
+
+    environment = {
+      KUBECONFIG = var.cluster_config_file
+    }
+  }
+}
