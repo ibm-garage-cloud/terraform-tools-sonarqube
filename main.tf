@@ -86,7 +86,7 @@ locals {
     }
     OpenShift = {
       enabled = true
-      createScc = false
+      createSCC = false
     }
   }
   service_account_config = {
