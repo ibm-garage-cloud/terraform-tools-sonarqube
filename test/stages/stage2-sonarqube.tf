@@ -21,7 +21,7 @@ resource "null_resource" "print_password" {
   depends_on = [module.dev_tools_namespace.admin_password]
 
   provisioner "local-exec" {
-    command = "echo 'Admin password: ${module.dev_tools_namespace.admin_password}'"
+    command = "echo 'Admin password: ${module.dev_tools_sonarqube.admin_password}'"
   }
 
   provisioner "local-exec" {
