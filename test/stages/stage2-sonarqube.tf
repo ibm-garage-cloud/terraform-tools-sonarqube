@@ -25,7 +25,7 @@ resource "null_resource" "print_password" {
   }
 
   provisioner "local-exec" {
-    command = "oc extract -n ${module.dev_capture_state.namespace} secret/sonarqube-access --to=."
+    command = "curl -u admin:${module.dev_tools_sonarqube.admin_password} -L ${module.dev_tools_sonarqube.ingress_url}/api/user_tokens/search"
 
     environment = {
       KUBECONFIG = module.dev_cluster.config_file_path
