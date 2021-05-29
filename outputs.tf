@@ -33,3 +33,10 @@ output "namespace" {
   value       = var.releases_namespace
   depends_on  = [helm_release.sonarqube]
 }
+
+output "admin_password" {
+  description = "The admin password that was generated"
+  value       = random_password.admin_password.result
+  depends_on  = [helm_release.sonarqube]
+  sensitive   = true
+}

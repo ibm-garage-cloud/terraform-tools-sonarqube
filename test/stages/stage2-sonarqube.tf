@@ -16,3 +16,19 @@ module "dev_tools_sonarqube" {
     database_name = ""
   }
 }
+
+resource "null_resource" "print_password" {
+  depends_on = [module.dev_tools_namespace.admin_password]
+
+  provisioner "local-exec" {
+    command = "echo 'Admin password: ${module.dev_tools_sonarqube.admin_password}'"
+  }
+
+  provisioner "local-exec" {
+    command = "curl -u admin:${module.dev_tools_sonarqube.admin_password} -L ${module.dev_tools_sonarqube.ingress_url}/api/user_tokens/search"
+
+    environment = {
+      KUBECONFIG = module.dev_cluster.config_file_path
+    }
+  }
+}

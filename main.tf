@@ -80,28 +80,19 @@ locals {
       install = var.plugins
     }
     enableTests = false
+    account = {
+      currentAdminPassword = "admin"
+      adminPassword = random_password.admin_password.result
+    }
+    OpenShift = {
+      enabled = true
+      createSCC = false
+    }
   }
   service_account_config = {
     name = var.service_account_name
     create = false
     sccs = ["anyuid", "privileged"]
-  }
-  config_service_account_config = {
-    name = local.config_sa_name
-    roles = [
-      {
-        apiGroups = [
-          ""
-        ]
-        resources = [
-          "secrets",
-          "configmaps"
-        ]
-        verbs = [
-          "*"
-        ]
-      }
-    ]
   }
   ocp_route_config       = {
     nameOverride = "sonarqube"
@@ -116,18 +107,15 @@ locals {
     url = local.ingress_url
     privateUrl = local.service_url
     username = "admin"
-    password = "admin"
+    password = random_password.admin_password.result
     applicationMenu = true
   }
-  job_config             = {
-    name = "sonarqube"
-    serviceAccountName = local.config_sa_name
-    command = "setup-sonarqube"
-    secret = {
-      name = local.secret_name
-      key  = "SONARQUBE_URL"
-    }
-  }
+}
+
+resource "random_password" "admin_password" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
 }
 
 resource "null_resource" "setup-chart" {
@@ -151,12 +139,10 @@ resource "null_resource" "delete-consolelink" {
 resource "local_file" "sonarqube-values" {
   content  = yamlencode({
     global = local.global_config
-    sonarqube = local.sonarqube_config
     service-account = local.service_account_config
-    config-service-account = local.config_service_account_config
+    sonarqube = local.sonarqube_config
     ocp-route = local.ocp_route_config
     tool-config = local.tool_config
-    setup-job = local.job_config
   })
   filename = "${local.chart_dir}/values.yaml"
 }
@@ -191,18 +177,18 @@ resource "helm_release" "sonarqube" {
   dependency_update = true
   force_update      = true
   replace           = true
+  wait_for_jobs     = true
 
   disable_openapi_validation = true
 
   values = [local_file.sonarqube-values.content]
 }
 
-resource "null_resource" "wait-for-config-job" {
+resource null_resource list_contents {
   depends_on = [helm_release.sonarqube]
-  count = var.mode != "setup" ? 1 : 0
 
   provisioner "local-exec" {
-    command = "kubectl wait -n ${var.releases_namespace} --for=condition=complete --timeout=30m job -l app=sonarqube"
+    command = "kubectl get all -n ${var.releases_namespace}"
 
     environment = {
       KUBECONFIG = var.cluster_config_file

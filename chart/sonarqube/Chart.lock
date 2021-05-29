@@ -2,20 +2,14 @@ dependencies:
 - name: service-account
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
   version: 0.5.0
-- name: service-account
-  repository: https://ibm-garage-cloud.github.io/toolkit-charts/
-  version: 0.5.0
 - name: sonarqube
   repository: https://oteemo.github.io/charts
-  version: 6.6.0
+  version: 9.6.3
 - name: ocp-route
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
   version: 0.3.0
 - name: tool-config
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
   version: 0.9.0
-- name: setup-job
-  repository: https://ibm-garage-cloud.github.io/toolkit-charts/
-  version: 0.1.7
-digest: sha256:46292e695609d61996869f2eaa0b33f02aaa9cf830b16ecbe090df04193f8f51
-generated: "2020-08-20T07:53:39.523465-05:00"
+digest: sha256:39213888e326ded038aa0e8351d9c7989f91bd870b7f3439408172814d9344cc
+generated: "2021-05-27T22:29:50.725231-05:00"
